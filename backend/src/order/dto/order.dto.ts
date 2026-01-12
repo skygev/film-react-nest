@@ -5,11 +5,18 @@ export interface OrderTicketDto {
   seat: number;
 }
 
-export class CreateOrderDto {
-  tickets: OrderTicketDto[];
-  email: string;
+export interface OrderTicketRequestDto extends OrderTicketDto {
+  daytime?: string;
+  price?: number;
+}
+
+export interface OrderTicketsEnvelope {
+  tickets: OrderTicketRequestDto[];
+  email?: string;
   phone?: string;
 }
+
+export type CreateOrderDto = OrderTicketRequestDto[] | OrderTicketsEnvelope;
 
 export interface OrderResultDto extends OrderTicketDto {
   id: string;

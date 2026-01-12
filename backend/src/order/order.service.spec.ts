@@ -3,7 +3,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 
 import { OrderService } from './order.service';
 import { FilmsRepository } from '../films/films.repository';
-import { CreateOrderDto } from './dto/order.dto';
+import { CreateOrderDto, OrderTicketRequestDto } from './dto/order.dto';
 
 const createFilmDocument = (overrides: Partial<any> = {}) => {
   const film = {
@@ -60,8 +60,19 @@ describe('OrderService', () => {
     const film = createFilmDocument();
     filmsRepository.findById.mockResolvedValue(film);
 
+    const tickets: OrderTicketRequestDto[] = [
+      {
+        film: film.id,
+        session: 'session-1',
+        row: 1,
+        seat: 1,
+        daytime: 'should be ignored',
+        price: 999,
+      },
+    ];
+
     const dto: CreateOrderDto = {
-      tickets: [{ film: film.id, session: 'session-1', row: 1, seat: 1 }],
+      tickets,
       email: 'user@example.com',
     };
 
@@ -96,11 +107,27 @@ describe('OrderService', () => {
   it('should throw when film not found', async () => {
     filmsRepository.findById.mockResolvedValue(null);
 
-    const dto: CreateOrderDto = {
+    const envelope: CreateOrderDto = {
       tickets: [{ film: 'film-unknown', session: 'session', row: 1, seat: 1 }],
       email: 'user@example.com',
     };
 
-    await expect(service.createOrder(dto)).rejects.toThrow(NotFoundException);
+    await expect(service.createOrder(envelope)).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('should support array payload format', async () => {
+    const film = createFilmDocument();
+    filmsRepository.findById.mockResolvedValue(film);
+
+    const dto: CreateOrderDto = [
+      { film: film.id, session: 'session-1', row: 1, seat: 1 },
+    ];
+
+    const result = await service.createOrder(dto);
+
+    expect(result.total).toBe(1);
+    expect(film.schedule[0].taken).toContain('1:1');
   });
 });

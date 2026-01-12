@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 
-import { CreateOrderDto, OrderResultDto } from './dto/order.dto';
+import {
+  CreateOrderDto,
+  OrderResultDto,
+  OrderTicketRequestDto,
+  OrderTicketsEnvelope,
+} from './dto/order.dto';
 import { ListResponseDto } from '../common/dto/list-response.dto';
 import { FilmsRepository } from '../films/films.repository';
 import { FilmDocument, FilmSession } from '../films/films.schema';
@@ -18,7 +23,10 @@ export class OrderService {
   async createOrder(
     dto: CreateOrderDto,
   ): Promise<ListResponseDto<OrderResultDto>> {
-    if (!dto.tickets?.length) {
+    const normalized = this.normalizeOrder(dto);
+    const tickets = normalized.tickets;
+
+    if (!tickets.length) {
       throw new BadRequestException('Не выбраны места для бронирования');
     }
 
@@ -26,7 +34,7 @@ export class OrderService {
     const filmsToSave = new Set<FilmDocument>();
     const items: OrderResultDto[] = [];
 
-    for (const ticket of dto.tickets) {
+    for (const ticket of tickets) {
       const film = await this.getFilm(ticket.film, filmsCache);
       const session = this.getSession(film, ticket.session);
       const seatKey = `${ticket.row}:${ticket.seat}`;
@@ -87,5 +95,24 @@ export class OrderService {
     }
 
     return session;
+  }
+
+  private normalizeOrder(dto: CreateOrderDto): OrderTicketsEnvelope {
+    if (Array.isArray(dto)) {
+      return {
+        tickets: dto.map(this.stripClientProvidedSeatMeta),
+      };
+    }
+
+    return {
+      tickets: (dto.tickets ?? []).map(this.stripClientProvidedSeatMeta),
+      email: dto.email,
+      phone: dto.phone,
+    };
+  }
+
+  private stripClientProvidedSeatMeta(ticket: OrderTicketRequestDto): OrderTicketRequestDto {
+    const { film, session, row, seat } = ticket;
+    return { film, session, row, seat };
   }
 }
