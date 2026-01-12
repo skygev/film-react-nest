@@ -21,7 +21,7 @@ export const filmToScheduleDto = (film: FilmDocument): FilmScheduleDto => ({
 const filmSessionToDto = (session: FilmSession): FilmSessionDto => ({
   id: session.id,
   daytime: session.daytime,
-  hall: String(session.hall),
+  hall: session.hall,
   rows: session.rows,
   seats: session.seats,
   price: session.price,
