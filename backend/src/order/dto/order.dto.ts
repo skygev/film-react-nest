@@ -1,13 +1,18 @@
+export interface OrderTicketDto {
+  film: string;
+  session: string;
+  row: number;
+  seat: number;
+}
+
 export class CreateOrderDto {
-  filmId: string;
-  sessionId: string;
-  ticketsCount: number;
+  tickets: OrderTicketDto[];
   email: string;
   phone?: string;
 }
 
-export class OrderStatusDto {
-  orderId: string;
-  status: 'processing' | 'confirmed';
-  totalPrice: number;
+export interface OrderResultDto extends OrderTicketDto {
+  id: string;
+  daytime: string;
+  price: number;
 }
