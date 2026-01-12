@@ -1,80 +1,40 @@
 import { Injectable } from '@nestjs/common';
 
+import { ListResponseDto } from '../common/dto/list-response.dto';
 import {
   FilmDto,
-  FilmScheduleDto,
   FilmSessionDto,
   FilmsQueryDto,
 } from './dto/films.dto';
+import { FilmsRepository } from './films.repository';
+import { filmToDto, filmToScheduleDto } from './films.mapper';
 
 @Injectable()
 export class FilmsService {
-  private readonly films: FilmDto[] = [
-    {
-      id: 'dune-2',
-      title: 'Dune: Part Two',
-      description:
-        'Paul Atreides объединяет силы с фременами, чтобы отомстить за семью.',
-      durationMinutes: 166,
-      posterUrl: '/content/afisha/bg1c.jpg',
-      genres: ['sci-fi', 'adventure'],
-    },
-    {
-      id: 'poor-things',
-      title: 'Poor Things',
-      description:
-        'Фантастическая история о девушке, переживающей второе рождение.',
-      durationMinutes: 141,
-      posterUrl: '/content/afisha/bg2c.jpg',
-      genres: ['drama', 'fantasy'],
-    },
-  ];
+  constructor(private readonly filmsRepository: FilmsRepository) {}
 
-  private readonly schedules: Record<string, FilmScheduleDto> = {
-    'dune-2': {
-      filmId: 'dune-2',
-      showTimes: [
-        this.createSession('session-1', '2026-01-12T17:00:00.000Z', 'Hall 1'),
-        this.createSession('session-2', '2026-01-12T21:00:00.000Z', 'Hall 2'),
-      ],
-    },
-    'poor-things': {
-      filmId: 'poor-things',
-      showTimes: [
-        this.createSession('session-3', '2026-01-13T15:30:00.000Z', 'Hall 3'),
-        this.createSession('session-4', '2026-01-13T19:00:00.000Z', 'Hall 1'),
-      ],
-    },
-  };
+  async findAll(query: FilmsQueryDto = {}): Promise<ListResponseDto<FilmDto>> {
+    const films = await this.filmsRepository.findAll(query);
+    const items = films.map(filmToDto);
 
-  findAll(query: FilmsQueryDto = {}): FilmDto[] {
-    if (!query.date) {
-      return this.films;
+    return {
+      total: items.length,
+      items,
+    };
+  }
+
+  async findSchedule(
+    id: string,
+  ): Promise<ListResponseDto<FilmSessionDto> | undefined> {
+    const film = await this.filmsRepository.findById(id);
+    if (!film) {
+      return undefined;
     }
 
-    // простая фильтрация: оставить фильмы, у которых есть сеанс на дату
-    return this.films.filter((film) => {
-      const schedule = this.schedules[film.id];
-      return schedule?.showTimes.some((session) =>
-        session.startsAt.startsWith(query.date as string),
-      );
-    });
-  }
-
-  findSchedule(id: string): FilmScheduleDto | undefined {
-    return this.schedules[id];
-  }
-
-  private createSession(
-    id: string,
-    startsAt: string,
-    hall: string,
-  ): FilmSessionDto {
+    const schedule = filmToScheduleDto(film);
     return {
-      id,
-      startsAt,
-      hall,
-      price: 450,
+      total: schedule.showTimes.length,
+      items: schedule.showTimes,
     };
   }
 }

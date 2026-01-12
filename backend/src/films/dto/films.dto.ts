@@ -1,10 +1,13 @@
 export class FilmDto {
   id: string;
   title: string;
+  about: string;
   description: string;
-  durationMinutes: number;
-  posterUrl: string;
-  genres: string[];
+  director: string;
+  rating: number;
+  tags: string[];
+  image: string;
+  cover: string;
 }
 
 export class FilmScheduleDto {
@@ -14,9 +17,12 @@ export class FilmScheduleDto {
 
 export class FilmSessionDto {
   id: string;
-  startsAt: string;
+  daytime: string;
   hall: string;
+  rows: number;
+  seats: number;
   price: number;
+  taken: string[];
 }
 
 export class FilmsQueryDto {
