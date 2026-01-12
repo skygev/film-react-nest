@@ -20,7 +20,7 @@ import { OrderController } from './order/order.controller';
     }),
     MongooseModule.forRoot(process.env.DATABASE_URL ?? 'mongodb://127.0.0.1:27017/afisha'),
     ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'public'),
+      rootPath: path.join(__dirname, '..', 'public', 'content', 'afisha'),
       serveRoot: '/content/afisha',
     }),
     MongooseModule.forFeature([{ name: Film.name, schema: FilmSchema }]),
