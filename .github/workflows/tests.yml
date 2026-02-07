@@ -60,6 +60,19 @@ jobs:
         DATABASE_USERNAME=film
         DATABASE_PASSWORD=film
         EOF
+    - name: Ensure prac role exists
+      env:
+        PGPASSWORD: film
+      run: |
+        psql -h 127.0.0.1 -U film -d postgres <<'SQL'
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'prac') THEN
+            CREATE ROLE prac WITH LOGIN PASSWORD 'film';
+          END IF;
+        END;
+        $$;
+        SQL
     - name: Prepare database schema
       env:
         PGPASSWORD: film
@@ -81,7 +94,6 @@ jobs:
           sleep 2
         done
         echo "Backend did not become ready" >&2
-        [[ -f ../backend.log ]] && cat ../backend.log
         [[ -f backend.log ]] && cat backend.log
         exit 1
     - name: Run tests
