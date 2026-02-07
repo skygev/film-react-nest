@@ -36,10 +36,10 @@ export class Film {
   title: string;
 
   @Prop()
-  description?: string;
+  about?: string;
 
   @Prop()
-  about?: string;
+  description?: string;
 
   @Prop()
   director?: string;
@@ -47,23 +47,14 @@ export class Film {
   @Prop()
   rating?: number;
 
-  @Prop()
-  durationMinutes?: number;
-
-  @Prop()
-  posterUrl?: string;
+  @Prop({ type: [String], default: [] })
+  tags: string[];
 
   @Prop()
   image?: string;
 
   @Prop()
   cover?: string;
-
-  @Prop({ type: [String], default: [] })
-  genres: string[];
-
-  @Prop({ type: [String], default: [] })
-  tags: string[];
 
   @Prop({ type: [FilmSessionSchema], default: [] })
   schedule: FilmSession[];

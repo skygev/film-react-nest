@@ -14,7 +14,7 @@ import {
 } from './dto/order.dto';
 import { ListResponseDto } from '../common/dto/list-response.dto';
 import { FilmsRepository } from '../films/films.repository';
-import { FilmDocument, FilmSession } from '../films/films.schema';
+import { FilmDocument, FilmSession } from '../films/films.document';
 
 @Injectable()
 export class OrderService {
@@ -31,7 +31,7 @@ export class OrderService {
     }
 
     const filmsCache = new Map<string, FilmDocument>();
-    const filmsToSave = new Set<FilmDocument>();
+    const sessionsToSave: FilmSession[] = [];
     const items: OrderResultDto[] = [];
 
     for (const ticket of tickets) {
@@ -50,7 +50,7 @@ export class OrderService {
       }
 
       session.taken.push(seatKey);
-      filmsToSave.add(film);
+      sessionsToSave.push(session);
 
       items.push({
         ...ticket,
@@ -60,7 +60,7 @@ export class OrderService {
       });
     }
 
-    await Promise.all([...filmsToSave].map((film) => film.save()));
+    await this.filmsRepository.saveTakenSeats(sessionsToSave);
 
     return {
       total: items.length,
@@ -84,9 +84,7 @@ export class OrderService {
   }
 
   private getSession(film: FilmDocument, sessionId: string): FilmSession {
-    const session = film.schedule?.find(
-      (item) => item.id === sessionId,
-    );
+    const session = film.schedule?.find((item) => item.id === sessionId);
 
     if (!session) {
       throw new NotFoundException(
@@ -111,7 +109,9 @@ export class OrderService {
     };
   }
 
-  private stripClientProvidedSeatMeta(ticket: OrderTicketRequestDto): OrderTicketRequestDto {
+  private stripClientProvidedSeatMeta(
+    ticket: OrderTicketRequestDto,
+  ): OrderTicketRequestDto {
     const { film, session, row, seat } = ticket;
     return { film, session, row, seat };
   }

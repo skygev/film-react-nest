@@ -1,5 +1,5 @@
 import { FilmDto, FilmScheduleDto, FilmSessionDto } from './dto/films.dto';
-import { FilmDocument, FilmSession } from './films.schema';
+import { FilmDocument, FilmSession } from './films.document';
 
 export const filmToDto = (film: FilmDocument): FilmDto => ({
   id: film.id,
@@ -9,8 +9,8 @@ export const filmToDto = (film: FilmDocument): FilmDto => ({
   director: film.director ?? '',
   rating: film.rating ?? 0,
   tags: film.tags ?? [],
-  image: film.image ?? film.posterUrl ?? '',
-  cover: film.cover ?? film.posterUrl ?? '',
+  image: film.image ?? '',
+  cover: film.cover ?? '',
 });
 
 export const filmToScheduleDto = (film: FilmDocument): FilmScheduleDto => ({

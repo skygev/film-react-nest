@@ -7,11 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { FilmsService } from './films.service';
-import {
-  FilmDto,
-  FilmSessionDto,
-  FilmsQueryDto,
-} from './dto/films.dto';
+import { FilmDto, FilmSessionDto, FilmsQueryDto } from './dto/films.dto';
 import { ListResponseDto } from '../common/dto/list-response.dto';
 
 @Controller('films')

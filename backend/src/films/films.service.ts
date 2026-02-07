@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { ListResponseDto } from '../common/dto/list-response.dto';
-import {
-  FilmDto,
-  FilmSessionDto,
-  FilmsQueryDto,
-} from './dto/films.dto';
+import { FilmDto, FilmSessionDto, FilmsQueryDto } from './dto/films.dto';
 import { FilmsRepository } from './films.repository';
 import { filmToDto, filmToScheduleDto } from './films.mapper';
 

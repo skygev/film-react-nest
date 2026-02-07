@@ -16,7 +16,6 @@ const createFilmDocument = (overrides: Partial<any> = {}) => {
         taken: [],
       },
     ],
-    save: jest.fn().mockResolvedValue(null),
     ...overrides,
   };
 
@@ -27,6 +26,7 @@ describe('OrderService', () => {
   let service: OrderService;
   const filmsRepository = {
     findById: jest.fn(),
+    saveTakenSeats: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -59,6 +59,7 @@ describe('OrderService', () => {
   it('should book seats and persist film', async () => {
     const film = createFilmDocument();
     filmsRepository.findById.mockResolvedValue(film);
+    filmsRepository.saveTakenSeats.mockResolvedValue(undefined);
 
     const tickets: OrderTicketRequestDto[] = [
       {
@@ -80,7 +81,9 @@ describe('OrderService', () => {
 
     expect(result.total).toBe(1);
     expect(film.schedule[0].taken).toContain('1:1');
-    expect(film.save).toHaveBeenCalled();
+    expect(filmsRepository.saveTakenSeats).toHaveBeenCalledWith([
+      film.schedule[0],
+    ]);
   });
 
   it('should prevent booking taken seat', async () => {
@@ -120,6 +123,7 @@ describe('OrderService', () => {
   it('should support array payload format', async () => {
     const film = createFilmDocument();
     filmsRepository.findById.mockResolvedValue(film);
+    filmsRepository.saveTakenSeats.mockResolvedValue(undefined);
 
     const dto: CreateOrderDto = [
       { film: film.id, session: 'session-1', row: 1, seat: 1 },
@@ -129,5 +133,8 @@ describe('OrderService', () => {
 
     expect(result.total).toBe(1);
     expect(film.schedule[0].taken).toContain('1:1');
+    expect(filmsRepository.saveTakenSeats).toHaveBeenCalledWith([
+      film.schedule[0],
+    ]);
   });
 });
