@@ -25,6 +25,20 @@ jobs:
       run: bash $DIR_TESTS/bin/backend.sh
   test_endpoints:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: film
+          POSTGRES_PASSWORD: film
+          POSTGRES_DB: prac
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U film -d prac"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
     - name: Set up GitHub Actions
       uses: actions/checkout@v4
@@ -34,7 +48,48 @@ jobs:
         node-version: 18.x
     - name: Get testing lib
       run: set -eu && git clone --depth 1 $REP_TESTS $DIR_TESTS
-    - name: Start project
-      run: bash $DIR_TESTS/bin/start_project.sh
+    - name: Install backend dependencies
+      working-directory: backend
+      run: npm ci
+    - name: Configure backend env
+      working-directory: backend
+      run: |
+        cat <<'EOF' > .env
+        DATABASE_DRIVER=postgres
+        DATABASE_URL=postgresql://film:film@127.0.0.1:5432/prac
+        DATABASE_USERNAME=film
+        DATABASE_PASSWORD=film
+        EOF
+    - name: Prepare database schema
+      env:
+        PGPASSWORD: film
+      run: |
+        psql -h 127.0.0.1 -U film -d prac -f backend/test/prac.init.sql
+        psql -h 127.0.0.1 -U film -d prac -f backend/test/prac.films.sql
+        psql -h 127.0.0.1 -U film -d prac -f backend/test/prac.schedules.sql
+    - name: Start backend
+      working-directory: backend
+      run: |
+        npm run start:dev > ../backend.log 2>&1 &
+        echo $! > ../backend.pid
+    - name: Wait for backend
+      run: |
+        for i in {1..45}; do
+          if curl -fs http://127.0.0.1:3000/api/afisha/films > /dev/null; then
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Backend did not become ready" >&2
+        [[ -f ../backend.log ]] && cat ../backend.log
+        [[ -f backend.log ]] && cat backend.log
+        exit 1
     - name: Run tests
       run: bash $DIR_TESTS/bin/endpoints.sh
+    - name: Stop backend
+      if: always()
+      run: |
+        if [[ -f backend.pid ]]; then
+          kill $(cat backend.pid) || true
+        fi
+        [[ -f backend.log ]] && cat backend.log
