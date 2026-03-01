@@ -1,0 +1,93 @@
+services:
+  frontend-builder:
+    image: ghcr.io/${GHCR_OWNER:-elenagorozheeva}/film-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api/afisha
+        VITE_CDN_URL: /content/afisha
+    volumes:
+      - frontend_dist:/frontend-dist
+    networks:
+      - film_network
+    restart: unless-stopped
+
+  backend:
+    image: ghcr.io/${GHCR_OWNER:-elenagorozheeva}/film-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      LOG_FORMAT: json
+      DATABASE_DRIVER: postgres
+      DATABASE_URL: postgresql://film:film@postgres:5432/film
+      DEBUG: '*'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - film_network
+    restart: unless-stopped
+
+  nginx:
+    image: ghcr.io/${GHCR_OWNER:-elenagorozheeva}/film-nginx:latest
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'
+    volumes:
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      backend:
+        condition: service_started
+      frontend-builder:
+        condition: service_started
+    networks:
+      - film_network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: film
+      POSTGRES_USER: film
+      POSTGRES_PASSWORD: film
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U film -d film']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - film_network
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:8.10
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@film.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '8080:80'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - film_network
+    restart: unless-stopped
+
+volumes:
+  frontend_dist:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  film_network:
+    driver: bridge
