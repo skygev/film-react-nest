@@ -20,8 +20,9 @@
 
 Создайте `.env` файл из примера `.env.example`, в нём укажите:
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
+* `DATABASE_DRIVER` - тип драйвера СУБД (`postgres` или `mongodb`).
+* `DATABASE_URL` - адрес СУБД. Для PostgreSQL, например: `postgresql://film:film@127.0.0.1:5432/prac`.
+* `LOG_FORMAT` - формат логов: `dev`, `json` или `tskv`.
 
 MongoDB должна быть установлена и запущена.
 
