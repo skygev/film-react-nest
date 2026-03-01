@@ -31,6 +31,26 @@ MongoDB должна быть установлена и запущена.
 
 Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
 
+## REST API
 
+После запуска приложения по умолчанию доступны следующие эндпоинты (с глобальным префиксом `http://localhost:3000/api/afisha`):
 
+| Метод | Путь | Назначение |
+| --- | --- | --- |
+| `GET` | `/films` | Получить список фильмов с поддержкой параметра `date` для фильтрации по дате сеанса |
+| `GET` | `/films/:id/schedule` | Получить расписание конкретного фильма |
+| `POST` | `/order` | Создать заказ на билеты |
 
+Пример запроса:
+
+```bash
+curl http://localhost:3000/api/afisha/films
+curl http://localhost:3000/api/afisha/films/dune-2/schedule
+curl -X POST http://localhost:3000/api/afisha/order \
+  -H "Content-Type: application/json" \
+  -d '{"filmId":"dune-2","sessionId":"session-1","ticketsCount":2,"email":"user@example.com"}'
+```
+
+## Статический контент
+
+Файлы афиши раздаются напрямую по пути `http://localhost:3000/content/afisha/*`. Например, `http://localhost:3000/content/afisha/bg1c.jpg`.
