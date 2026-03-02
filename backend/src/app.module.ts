@@ -21,7 +21,7 @@ import { TskvLogger } from './logger/tskv.logger';
       cache: true,
     }),
     AppConfigModule,
-    FilmsRepositoryModule.register(),
+    FilmsRepositoryModule,
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'public', 'content', 'afisha'),
       serveRoot: '/content/afisha',

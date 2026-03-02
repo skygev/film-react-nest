@@ -26,16 +26,12 @@ jobs:
   test_endpoints:
     runs-on: ubuntu-latest
     services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: film
-          POSTGRES_PASSWORD: film
-          POSTGRES_DB: prac
+      mongodb:
+        image: mongo:7
         ports:
-          - 5432:5432
+          - 27017:27017
         options: >-
-          --health-cmd "pg_isready -U film -d prac"
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 }).ok' || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -55,31 +51,13 @@ jobs:
       working-directory: backend
       run: |
         cat <<'EOF' > .env
-        DATABASE_DRIVER=postgres
-        DATABASE_URL=postgresql://film:film@127.0.0.1:5432/prac
-        DATABASE_USERNAME=film
-        DATABASE_PASSWORD=film
+        DATABASE_URL=mongodb://127.0.0.1:27017/afisha
+        DATABASE_USERNAME=
+        DATABASE_PASSWORD=
         EOF
-    - name: Ensure prac role exists
-      env:
-        PGPASSWORD: film
-      run: |
-        psql -h 127.0.0.1 -U film -d postgres <<'SQL'
-        DO $$
-        BEGIN
-          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'prac') THEN
-            CREATE ROLE prac WITH LOGIN PASSWORD 'film';
-          END IF;
-        END;
-        $$;
-        SQL
-    - name: Prepare database schema
-      env:
-        PGPASSWORD: film
-      run: |
-        psql -h 127.0.0.1 -U film -d prac -f backend/test/prac.init.sql
-        psql -h 127.0.0.1 -U film -d prac -f backend/test/prac.films.sql
-        psql -h 127.0.0.1 -U film -d prac -f backend/test/prac.schedules.sql
+    - name: Seed MongoDB data
+      working-directory: backend
+      run: node test/seed-mongodb.js
     - name: Start backend
       working-directory: backend
       run: |

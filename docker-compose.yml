@@ -21,12 +21,13 @@ services:
     environment:
       NODE_ENV: production
       LOG_FORMAT: json
-      DATABASE_DRIVER: postgres
-      DATABASE_URL: postgresql://film:film@postgres:5432/film
+      DATABASE_URL: mongodb://mongo:27017/afisha
       DEBUG: '*'
     depends_on:
-      postgres:
+      mongo:
         condition: service_healthy
+      mongo-seed:
+        condition: service_completed_successfully
     networks:
       - film_network
     restart: unless-stopped
@@ -49,44 +50,56 @@ services:
       - film_network
     restart: unless-stopped
 
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: film
-      POSTGRES_USER: film
-      POSTGRES_PASSWORD: film
+  mongo:
+    image: mongo:7
+    command: ['--bind_ip_all']
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U film -d film']
+      test: ['CMD-SHELL', 'mongosh --quiet --eval "db.adminCommand({ ping: 1 }).ok" || exit 1']
       interval: 5s
       timeout: 3s
       retries: 10
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mongo_data:/data/db
     networks:
       - film_network
     restart: unless-stopped
 
-  pgadmin:
-    image: dpage/pgadmin4:8.10
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@film.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    ports:
-      - '8080:80'
-    depends_on:
-      postgres:
-        condition: service_healthy
+  mongo-seed:
+    image: mongo:7
+    command:
+      [
+        'sh',
+        '-c',
+        'mongoimport --host mongo --db afisha --collection films --file /seed/mongodb_initial_stub.json --jsonArray --drop',
+      ]
     volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - ./backend/test/mongodb_initial_stub.json:/seed/mongodb_initial_stub.json:ro
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - film_network
+    restart: 'no'
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: '27017'
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - '8080:8081'
+    depends_on:
+      mongo:
+        condition: service_healthy
     networks:
       - film_network
     restart: unless-stopped
 
 volumes:
   frontend_dist:
-  postgres_data:
-  pgadmin_data:
+  mongo_data:
 
 networks:
   film_network:

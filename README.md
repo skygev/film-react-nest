@@ -4,14 +4,8 @@
 
 ### База данных
 
-Проект поддерживает два драйвера:
-
-* `postgres` (основной сценарий для текущей конфигурации);
-* `mongodb` (опционально).
-
-Выберите драйвер через `DATABASE_DRIVER` в `.env`.
-
-Если используете MongoDB, выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+Проект использует только MongoDB.
+Для инициализации тестовых данных используйте файл `backend/test/mongodb_initial_stub.json`.
 
 ### Бэкенд
 
@@ -25,8 +19,7 @@
 
 Создайте `.env` файл из примера `.env.example`, в нём укажите:
 
-* `DATABASE_DRIVER` - тип драйвера СУБД (`postgres` или `mongodb`).
-* `DATABASE_URL` - адрес СУБД. Для PostgreSQL, например: `postgresql://film:film@127.0.0.1:5432/prac`.
+* `DATABASE_URL` - адрес MongoDB, например: `mongodb://127.0.0.1:27017/afisha`.
 * `LOG_FORMAT` - формат логов: `dev`, `json` или `tskv`.
 
 Выбранная СУБД должна быть установлена и запущена.
@@ -68,7 +61,7 @@
 Доступные порты:
 
 * приложение: `http://localhost` (порт `80`);
-* pgAdmin: `http://localhost:8080`.
+* Mongo Express: `http://localhost:8080`.
 
 ## REST API
 
