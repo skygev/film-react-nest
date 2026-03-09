@@ -1,12 +1,19 @@
 # FILM!
 
+## Деплой
+
+Проект задеплоен по адресам:
+
+- фронтенд: `http://skygev.students.nomorepartiessite.ru`
+- бэкенд API: `http://api.skygev.students.nomorepartiessite.ru/api/afisha`
+- сервер по IP: `http://158.160.64.26`
+
 ## Установка
 
-### MongoDB
+### База данных
 
-Установите MongoDB скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker (см. ветку `feat/docker`.
-
-Выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+Проект использует только MongoDB.
+Для инициализации тестовых данных используйте файл `backend/test/mongodb_initial_stub.json`.
 
 ### Бэкенд
 
@@ -20,16 +27,49 @@
 
 Создайте `.env` файл из примера `.env.example`, в нём укажите:
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
+* `DATABASE_URL` - адрес MongoDB, например: `mongodb://127.0.0.1:27017/afisha`.
+* `LOG_FORMAT` - формат логов: `dev`, `json` или `tskv`.
 
-MongoDB должна быть установлена и запущена.
+Выбранная СУБД должна быть установлена и запущена.
 
 Запустите бэкенд:
 
 `npm start:debug`
 
 Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
+
+### Фронтенд
+
+Перейдите в папку фронтенда:
+
+`cd frontend`
+
+Установите зависимости:
+
+`npm ci`
+
+Запуск в dev-режиме:
+
+`npm run dev`
+
+Сборка production-версии:
+
+`npm run build`
+
+Локальный просмотр production-сборки:
+
+`npm run preview`
+
+### Docker
+
+Для полного запуска проекта в контейнерах:
+
+`docker compose up -d --build`
+
+Доступные порты:
+
+* приложение: `http://localhost` (порт `80`);
+* Mongo Express: `http://localhost:8080`.
 
 ## REST API
 
