@@ -4,8 +4,9 @@
 
 Проект задеплоен по адресам:
 
-- `http://skygev.students.nomorepartiessbs.ru`
-- `http://158.160.64.26`
+- фронтенд: `http://skygev.students.nomorepartiessite.ru`
+- бэкенд API: `http://api.skygev.students.nomorepartiessite.ru/api/afisha`
+- сервер по IP: `http://158.160.64.26`
 
 ## Установка
 
